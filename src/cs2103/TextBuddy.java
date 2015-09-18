@@ -37,7 +37,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Scanner;
 
 public class TextBuddy {
@@ -50,7 +49,6 @@ public class TextBuddy {
 	private static final String MESSAGE_DELETED = "deleted from %1$s: '%2$s'";
 	private static final String MESSAGE_EMPTY_FILE = "%1$s is empty";
 	private static final String MESSAGE_CLEAR = "all content deleted from %1$s";
-	private static final String MESSAGE_SORT = "the content in %1$s is sorted";
 
 	// These are the correct number of parameters for each command
 	private static final int PARAM_SIZE_FOR_DELETE_LINE = 1;
@@ -61,14 +59,14 @@ public class TextBuddy {
 	// These variables are declared for the whole class for input/output
 	private static Scanner scanner = new Scanner(System.in);
 	private static PrintStream printer = System.out;
-	public static String m_fileName = null;  // bling!
+	private static String m_fileName = null;
 	private static File m_file = null;
 	private static BufferedWriter writer;
 	private static BufferedReader reader;
 
 	// These are the possible command types
 	enum COMMAND_TYPE {
-		ADD_LINE, DELETE_LINE, DISPLAY, CLEAR, SORT, SEARCH, INVALID, EXIT
+		ADD_LINE, DELETE_LINE, DISPLAY, CLEAR, INVALID, EXIT
 	};
 
 
@@ -77,7 +75,7 @@ public class TextBuddy {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		isValidInputs(args);
+		validateInputs(args);
 		showToUser(String.format(MESSAGE_WELCOME, m_fileName));
 		createFile();
 		run();
@@ -99,7 +97,7 @@ public class TextBuddy {
 	 * This is to create the output file. If the file already exists, it will write 
 	 * on the existing file.
 	 */
-	public static void createFile() {
+	private static void createFile() {
 		try {
 			m_file = new File(m_fileName);
 			if (!m_file.exists()) {
@@ -117,17 +115,14 @@ public class TextBuddy {
 	 * This is to check whether the input that user enters is valid.
 	 * @param inputs
 	 */
-	private static void isValidInputs(String[] inputs) {
+	private static void validateInputs(String[] inputs) {
 		if (inputs.length == 0) {
 			throwError("you should specify an output file");
-		} 
-		else if (inputs.length > 1) {
+		} else if (inputs.length > 1) {
 			throwError("you should specify only one output file");
-		} 
-		else if (!isValidFileName(inputs[0])) {
+		} else if (!validateFileName(inputs[0])) {
 			throwError("this is not a valid txt file name");
-		} 
-		else {
+		} else {
 			m_fileName = inputs[0];
 		}
 	}
@@ -146,11 +141,11 @@ public class TextBuddy {
 	 * @return
 	 */
 	public static String executeCommand(String userCommand) {
-		if (isEmptyCommand(userCommand)) {
+		if (isEmptyCommand(userCommand)) //
 			return String.format(MESSAGE_INVALID_FORMAT, userCommand);
-		}
 
 		String commandTypeString = getFirstWord(userCommand);
+
 		COMMAND_TYPE commandType = determineCommandType(commandTypeString);
 
 		switch (commandType) {
@@ -162,10 +157,6 @@ public class TextBuddy {
 			return display();
 		case CLEAR:
 			return clear();
-		case SORT:
-			return sort();
-		case SEARCH:
-			return search(userCommand);
 		case INVALID:
 			return String.format(MESSAGE_INVALID_FORMAT, userCommand);
 		case EXIT:
@@ -176,9 +167,7 @@ public class TextBuddy {
 		}
 	}
 
-	/**
-	 * This method read out the text in txt file and save it in the content list
-	 */
+	
 	private static void readTextOut() {
 		boolean isEnded = false;
 		
@@ -204,18 +193,15 @@ public class TextBuddy {
 	 * @param fileName
 	 * @return
 	 */
-	private static boolean isValidFileName(String fileName) {
+	private static boolean validateFileName(String fileName) {
 		if (fileName.length() < 4) {
 			return false;
 		} else {
-			// get the last four letters, which is the extension name of the 
-			// file name
 			String extension = fileName.substring(fileName.length() - 4);
 			String capitalizedExtension = extension.toUpperCase();
 			if (capitalizedExtension.equals(".TXT")) {
 				return true;
-			} 
-			else {
+			} else {
 				return false;
 			}
 		}
@@ -236,7 +222,7 @@ public class TextBuddy {
 	 * @return
 	 */
 	private static boolean isEmptyCommand(String userCommand) {
-		return userCommand.trim().isEmpty();
+		return userCommand.trim().equals("");
 	}
 
 	/**
@@ -252,26 +238,15 @@ public class TextBuddy {
 
 		if (commandTypeString.equalsIgnoreCase("add")) {
 			return COMMAND_TYPE.ADD_LINE;
-		} 
-		else if (commandTypeString.equalsIgnoreCase("delete")) {
+		} else if (commandTypeString.equalsIgnoreCase("delete")) {
 			return COMMAND_TYPE.DELETE_LINE;
-		} 
-		else if (commandTypeString.equalsIgnoreCase("display")) {
+		} else if (commandTypeString.equalsIgnoreCase("display")) {
 			return COMMAND_TYPE.DISPLAY;
-		} 
-		else if (commandTypeString.equalsIgnoreCase("clear")) {
+		} else if (commandTypeString.equalsIgnoreCase("clear")) {
 			return COMMAND_TYPE.CLEAR;
-		} 
-		else if (commandTypeString.equalsIgnoreCase("search")) {
-			return COMMAND_TYPE.SEARCH;
-		}
-		else if (commandTypeString.equalsIgnoreCase("sort")) {
-			return COMMAND_TYPE.SORT;
-		}
-		else if (commandTypeString.equalsIgnoreCase("exit")) {
+		} else if (commandTypeString.equalsIgnoreCase("exit")) {
 			return COMMAND_TYPE.EXIT;
-		} 
-		else {
+		} else {
 			return COMMAND_TYPE.INVALID;
 		}
 	}
@@ -282,6 +257,7 @@ public class TextBuddy {
 	 * @return
 	 */
 	private static String addLine(String userCommand) {
+
 		String content = removeFirstWord(userCommand);
 		contentList.add(content);
 		save();
@@ -301,21 +277,19 @@ public class TextBuddy {
 			return String.format(MESSAGE_INVALID_FORMAT, userCommand);
 		}
 
-		// parse string to number
 		String lineString = parameters[0];
 		if (!isParsable(lineString)) {
 			return String.format(MESSAGE_INVALID_FORMAT, userCommand);
 		}
 
 		int line = Integer.parseInt(lineString);
-		// the index of a line in the array should be line number - 1
-		int index = line - 1;
-		if (index < 0 || index >= contentList.size()) {
+		line --;
+		if (line < 0 || line >= contentList.size()) {
 			return String.format(MESSAGE_NO_SUCH_LINE, lineString);
 		}
 
-		String toBeDeleted = contentList.get(index);
-		contentList.remove(index);
+		String toBeDeleted = contentList.get(line);
+		contentList.remove(line);
 		save();
 		
 		return String.format(MESSAGE_DELETED, m_fileName, toBeDeleted);
@@ -347,13 +321,11 @@ public class TextBuddy {
 			return String.format(MESSAGE_EMPTY_FILE, m_fileName);
 		}
 
-		// append all the contents stored in the array list
 		String displayContent = "";
 		for (int i = 0; i < size - 1; i++) {
 			int index = i + 1;
 			displayContent += index + "." + contentList.get(i) + "\n";
 		}
-		// the last line does not have "\n"
 		displayContent += size + "." + contentList.get(size - 1);
 
 		return displayContent;
@@ -369,39 +341,6 @@ public class TextBuddy {
 		return String.format(MESSAGE_CLEAR, m_fileName);
 	}
 
-	/**
-	 * This method sorts the content in the file.
-	 * @return
-	 */
-	private static String sort() {
-		Collections.sort(contentList);
-		save();
-		return String.format(MESSAGE_SORT, m_fileName);
-	}
-	
-	/**
-	 * This method searches all the lines that contain the keyword given by
-	 * the user.
-	 * @param userCommand
-	 * @return
-	 */
-	private static String search(String userCommand) {
-		String keyword = removeFirstWord(userCommand);
-		ArrayList<String> filteredList = filterKeyword(contentList, keyword);
-		
-		// append all the contents stored in the filtered array list
-		int size = filteredList.size();
-		String displayContent = "";
-		for (int i = 0; i < size - 1; i++) {
-			int index = i + 1;
-			displayContent += index + "." + filteredList.get(i) + "\n";
-		}
-		// the last line does not have "\n"
-		displayContent += size + "." + filteredList.get(size - 1);
-		
-		return displayContent;
-	}
-	
 	/**
 	 * This method exits the program.
 	 */
@@ -429,24 +368,6 @@ public class TextBuddy {
 			showToUser(e.getMessage());
 		}
 	}
-	
-	/**
-	 * This method filter out all the strings in target that contain a 
-	 * given keyword
-	 * @param target
-	 * @param keyword
-	 * @return
-	 */
-	private static ArrayList<String> filterKeyword(ArrayList<String> target, String keyword) {
-		ArrayList<String> result = new ArrayList<String>();
-		for (String element: target) {
-			if (element.contains(keyword)) {
-				result.add(element);
-			}
-		}
-		return result;
-	}
-	
 	
 	/**
 	 * This method removes the first word from a string
