@@ -4,20 +4,16 @@ import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.UUID;
+
 import org.junit.Test;
 
 public class JunitTextBuddyAtd {
 	private static final String TEST_FILENAME = "test.txt";	
 	private PrintStream console;
 	private ByteArrayOutputStream bytes;
-	
-	private static final String MESSAGE_ADDED = "added to %1$s: '%2$s'";
-	private static final String MESSAGE_INVALID_FORMAT = "invalid command format :%1$s";
-	private static final String MESSAGE_WELCOME = "Welcome to TextBuddy. %1$s is ready for use";
-	private static final String MESSAGE_NO_SUCH_LINE = "there is no such line :%1$s";
-	private static final String MESSAGE_DELETED = "deleted from %1$s: '%2$s'";
-	private static final String MESSAGE_EMPTY_FILE = "%1$s is empty";
-	private static final String MESSAGE_CLEAR = "all content deleted from %1$s";
 	
 	/*
 	public void testRun() {
@@ -35,12 +31,36 @@ public class JunitTextBuddyAtd {
 	public void testAdd() {
 		setUp();
 		tearDown();
-		testAddNormal();
+		TextBuddy.m_fileName = TEST_FILENAME;
+		TextBuddy.createFile();
+		//testAddNormal();
+	}
+
+	@Test
+	public void testSort() {
+		TextBuddy.m_fileName = TEST_FILENAME;
+		TextBuddy.createNewFile();
+		
+		ArrayList<String> commandList = addCommands();
+		Collections.sort(commandList);
+		String displayContent = displayList(commandList);
+		
+		TextBuddy.executeCommand("sort");
+		TextBuddy.executeCommand("display");
+		
+		assertEquals(TextBuddy.executeCommand("display"), displayContent);
 	}
 	
 	@Test
-	public void testDisplay() {
-		testDisplayNormal();
+	public void testSearch() {
+		TextBuddy.m_fileName = TEST_FILENAME;
+		TextBuddy.createNewFile();
+		
+		ArrayList<String> commandList = addCommands();
+		ArrayList<String> filteredList = filterKeyword(commandList ,"is");
+		String displayContent = displayList(filteredList);
+		
+		assertEquals(TextBuddy.executeCommand("search is"), displayContent);
 	}
 	
 	public void setUp() {
@@ -68,47 +88,48 @@ public class JunitTextBuddyAtd {
 	}
 	*/
 	
-	public void testAddNormal() {
-		TextBuddy.m_fileName = TEST_FILENAME;
-		TextBuddy.createFile();
-		String command = "add little brown fox";
-		String content = "little brown fox";
-		String expected = TextBuddy.executeCommand(command);
-		assertEquals(String.format(MESSAGE_ADDED, TEST_FILENAME, content), expected);
-	}
-	
-	public void testDisplayNormal() {
-		TextBuddy.m_fileName = TEST_FILENAME;
-		System.out.println(TextBuddy.m_fileName);
-		String command = "display";
-		String content = "1.little brown fox";
-		String expected = TextBuddy.executeCommand(command);
+	public ArrayList<String> addCommands() {
+		ArrayList<String> commandList = new ArrayList<String>();
+		String command1 = "add this is a string";
+		String command2 = "add another string";
+		String command3 = "add try another string";
+		commandList.add("this is a string");
+		commandList.add("another string");
+		commandList.add("try another string");
+		TextBuddy.executeCommand(command1);
+		TextBuddy.executeCommand(command2);
+		TextBuddy.executeCommand(command3);
 		
-		System.out.println(expected);
-		assertEquals(content, expected);
-	}
-	
-	public void testBadDelete() {
-		String command = "delete 2";
-		String content = String.format(MESSAGE_NO_SUCH_LINE, "2");
-		String expected = TextBuddy.executeCommand(command);
-		assertEquals(content, expected);
-	}
-	
-	public void testGoodDelete() {
-		String command = "delete 1";
-		String content = String.format(MESSAGE_DELETED, TEST_FILENAME, "little brown fox");
-		String expected = TextBuddy.executeCommand(command);
-		assertEquals(content, expected);
-	}
-	
-	public void testClear() {
-		String command = "clear";
-		String content = String.format(MESSAGE_CLEAR, TEST_FILENAME);
-		String expected = TextBuddy.executeCommand(command);
+		// generate a random add command
+		for (int i=0; i<10; i++) {
+			String randomString = UUID.randomUUID().toString();
+			String command = String.format("add %1$s", randomString);
+			commandList.add(randomString);
+			TextBuddy.executeCommand(command);
+		}
 		
-		System.out.println(expected);
-		System.out.println(content);
-		assertEquals(content, expected);
+		return commandList;
+	}
+	
+	public String displayList(ArrayList<String> list) {
+		int size = list.size();
+		String displayContent = "";
+		for (int i = 0; i < size - 1; i++) {
+			int index = i + 1;
+			displayContent += index + "." + list.get(i) + "\n";
+		}
+		// the last line does not have "\n"
+		displayContent += size + "." + list.get(size - 1);
+		return displayContent;
+	}
+	
+	private ArrayList<String> filterKeyword(ArrayList<String> target, String keyword) {
+		ArrayList<String> result = new ArrayList<String>();
+		for (String element: target) {
+			if (element.contains(keyword)) {
+				result.add(element);
+			}
+		}
+		return result;
 	}
 }

@@ -37,6 +37,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 
 public class TextBuddy {
@@ -59,14 +60,14 @@ public class TextBuddy {
 	// These variables are declared for the whole class for input/output
 	private static Scanner scanner = new Scanner(System.in);
 	private static PrintStream printer = System.out;
-	private static String m_fileName = null;
+	public static String m_fileName = null; 
 	private static File m_file = null;
 	private static BufferedWriter writer;
 	private static BufferedReader reader;
 
 	// These are the possible command types
 	enum COMMAND_TYPE {
-		ADD_LINE, DELETE_LINE, DISPLAY, CLEAR, INVALID, EXIT
+		ADD_LINE, DELETE_LINE, DISPLAY, CLEAR, SORT, SEARCH, INVALID, EXIT
 	};
 
 
@@ -75,7 +76,7 @@ public class TextBuddy {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		validateInputs(args);
+		isValidInputs(args);
 		showToUser(String.format(MESSAGE_WELCOME, m_fileName));
 		createFile();
 		run();
@@ -97,7 +98,7 @@ public class TextBuddy {
 	 * This is to create the output file. If the file already exists, it will write 
 	 * on the existing file.
 	 */
-	private static void createFile() {
+	public static void createFile() {
 		try {
 			m_file = new File(m_fileName);
 			if (!m_file.exists()) {
@@ -110,19 +111,35 @@ public class TextBuddy {
 			showToUser(e.getMessage());
 		}
 	}
+	
+	public static void createNewFile() {
+		try {
+			clear();
+			m_file = new File(m_fileName);
+			m_file.createNewFile();
+			reader = new BufferedReader(new FileReader(m_file));
+			readTextOut();
+			writer = new BufferedWriter(new FileWriter(m_file));
+		} catch (IOException e) {
+			showToUser(e.getMessage());
+		}
+	}
 
 	/**
 	 * This is to check whether the input that user enters is valid.
 	 * @param inputs
 	 */
-	private static void validateInputs(String[] inputs) {
+	private static void isValidInputs(String[] inputs) {
 		if (inputs.length == 0) {
 			throwError("you should specify an output file");
-		} else if (inputs.length > 1) {
+		} 
+		else if (inputs.length > 1) {
 			throwError("you should specify only one output file");
-		} else if (!validateFileName(inputs[0])) {
+		} 
+		else if (!isValidFileName(inputs[0])) {
 			throwError("this is not a valid txt file name");
-		} else {
+		} 
+		else {
 			m_fileName = inputs[0];
 		}
 	}
@@ -141,11 +158,11 @@ public class TextBuddy {
 	 * @return
 	 */
 	public static String executeCommand(String userCommand) {
-		if (isEmptyCommand(userCommand)) //
+		if (isEmptyCommand(userCommand)) {
 			return String.format(MESSAGE_INVALID_FORMAT, userCommand);
+		}
 
 		String commandTypeString = getFirstWord(userCommand);
-
 		COMMAND_TYPE commandType = determineCommandType(commandTypeString);
 
 		switch (commandType) {
@@ -167,7 +184,9 @@ public class TextBuddy {
 		}
 	}
 
-	
+	/**
+	 * This method read out the text in txt file and save it in the content list
+	 */
 	private static void readTextOut() {
 		boolean isEnded = false;
 		
@@ -193,15 +212,18 @@ public class TextBuddy {
 	 * @param fileName
 	 * @return
 	 */
-	private static boolean validateFileName(String fileName) {
+	private static boolean isValidFileName(String fileName) {
 		if (fileName.length() < 4) {
 			return false;
 		} else {
+			// get the last four letters, which is the extension name of the 
+			// file name
 			String extension = fileName.substring(fileName.length() - 4);
 			String capitalizedExtension = extension.toUpperCase();
 			if (capitalizedExtension.equals(".TXT")) {
 				return true;
-			} else {
+			} 
+			else {
 				return false;
 			}
 		}
@@ -222,7 +244,7 @@ public class TextBuddy {
 	 * @return
 	 */
 	private static boolean isEmptyCommand(String userCommand) {
-		return userCommand.trim().equals("");
+		return userCommand.trim().isEmpty();
 	}
 
 	/**
@@ -238,15 +260,26 @@ public class TextBuddy {
 
 		if (commandTypeString.equalsIgnoreCase("add")) {
 			return COMMAND_TYPE.ADD_LINE;
-		} else if (commandTypeString.equalsIgnoreCase("delete")) {
+		} 
+		else if (commandTypeString.equalsIgnoreCase("delete")) {
 			return COMMAND_TYPE.DELETE_LINE;
-		} else if (commandTypeString.equalsIgnoreCase("display")) {
+		} 
+		else if (commandTypeString.equalsIgnoreCase("display")) {
 			return COMMAND_TYPE.DISPLAY;
-		} else if (commandTypeString.equalsIgnoreCase("clear")) {
+		} 
+		else if (commandTypeString.equalsIgnoreCase("clear")) {
 			return COMMAND_TYPE.CLEAR;
-		} else if (commandTypeString.equalsIgnoreCase("exit")) {
+		} 
+		else if (commandTypeString.equalsIgnoreCase("search")) {
+			return COMMAND_TYPE.SEARCH;
+		}
+		else if (commandTypeString.equalsIgnoreCase("sort")) {
+			return COMMAND_TYPE.SORT;
+		}
+		else if (commandTypeString.equalsIgnoreCase("exit")) {
 			return COMMAND_TYPE.EXIT;
-		} else {
+		} 
+		else {
 			return COMMAND_TYPE.INVALID;
 		}
 	}
@@ -257,7 +290,6 @@ public class TextBuddy {
 	 * @return
 	 */
 	private static String addLine(String userCommand) {
-
 		String content = removeFirstWord(userCommand);
 		contentList.add(content);
 		save();
@@ -277,19 +309,21 @@ public class TextBuddy {
 			return String.format(MESSAGE_INVALID_FORMAT, userCommand);
 		}
 
+		// parse string to number
 		String lineString = parameters[0];
 		if (!isParsable(lineString)) {
 			return String.format(MESSAGE_INVALID_FORMAT, userCommand);
 		}
 
 		int line = Integer.parseInt(lineString);
-		line --;
-		if (line < 0 || line >= contentList.size()) {
+		// the index of a line in the array should be line number - 1
+		int index = line - 1;
+		if (index < 0 || index >= contentList.size()) {
 			return String.format(MESSAGE_NO_SUCH_LINE, lineString);
 		}
 
-		String toBeDeleted = contentList.get(line);
-		contentList.remove(line);
+		String toBeDeleted = contentList.get(index);
+		contentList.remove(index);
 		save();
 		
 		return String.format(MESSAGE_DELETED, m_fileName, toBeDeleted);
@@ -321,11 +355,13 @@ public class TextBuddy {
 			return String.format(MESSAGE_EMPTY_FILE, m_fileName);
 		}
 
+		// append all the contents stored in the array list
 		String displayContent = "";
 		for (int i = 0; i < size - 1; i++) {
 			int index = i + 1;
 			displayContent += index + "." + contentList.get(i) + "\n";
 		}
+		// the last line does not have "\n"
 		displayContent += size + "." + contentList.get(size - 1);
 
 		return displayContent;
@@ -341,6 +377,7 @@ public class TextBuddy {
 		return String.format(MESSAGE_CLEAR, m_fileName);
 	}
 
+	
 	/**
 	 * This method exits the program.
 	 */
@@ -368,6 +405,8 @@ public class TextBuddy {
 			showToUser(e.getMessage());
 		}
 	}
+
+	
 	
 	/**
 	 * This method removes the first word from a string
