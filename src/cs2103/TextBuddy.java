@@ -50,6 +50,7 @@ public class TextBuddy {
 	private static final String MESSAGE_DELETED = "deleted from %1$s: '%2$s'";
 	private static final String MESSAGE_EMPTY_FILE = "%1$s is empty";
 	private static final String MESSAGE_CLEAR = "all content deleted from %1$s";
+	private static final String MESSAGE_SORT = "the content in %1$s is sorted";
 
 	// These are the correct number of parameters for each command
 	private static final int PARAM_SIZE_FOR_DELETE_LINE = 1;
@@ -60,7 +61,7 @@ public class TextBuddy {
 	// These variables are declared for the whole class for input/output
 	private static Scanner scanner = new Scanner(System.in);
 	private static PrintStream printer = System.out;
-	public static String m_fileName = null; 
+	public static String m_fileName = null;  // bling!
 	private static File m_file = null;
 	private static BufferedWriter writer;
 	private static BufferedReader reader;
@@ -174,6 +175,8 @@ public class TextBuddy {
 			return display();
 		case CLEAR:
 			return clear();
+		case SORT:
+			return sort();
 		case INVALID:
 			return String.format(MESSAGE_INVALID_FORMAT, userCommand);
 		case EXIT:
@@ -270,6 +273,9 @@ public class TextBuddy {
 		else if (commandTypeString.equalsIgnoreCase("clear")) {
 			return COMMAND_TYPE.CLEAR;
 		} 
+		else if (commandTypeString.equalsIgnoreCase("sort")) {
+			return COMMAND_TYPE.SORT;
+		}
 		else if (commandTypeString.equalsIgnoreCase("exit")) {
 			return COMMAND_TYPE.EXIT;
 		} 
@@ -371,6 +377,15 @@ public class TextBuddy {
 		return String.format(MESSAGE_CLEAR, m_fileName);
 	}
 
+	/**
+	 * This method sorts the content in the file.
+	 * @return
+	 */
+	private static String sort() {
+		Collections.sort(contentList);
+		save();
+		return String.format(MESSAGE_SORT, m_fileName);
+	}
 	
 	/**
 	 * This method exits the program.
@@ -399,8 +414,6 @@ public class TextBuddy {
 			showToUser(e.getMessage());
 		}
 	}
-
-	
 	
 	/**
 	 * This method removes the first word from a string
