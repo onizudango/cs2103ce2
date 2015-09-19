@@ -115,7 +115,7 @@ public class TextBuddy {
 	
 	public static void createNewFile() {
 		try {
-			clear();
+			contentList = new ArrayList<String>();
 			m_file = new File(m_fileName);
 			m_file.createNewFile();
 			reader = new BufferedReader(new FileReader(m_file));
@@ -177,6 +177,8 @@ public class TextBuddy {
 			return clear();
 		case SORT:
 			return sort();
+		case SEARCH:
+			return search(userCommand);
 		case INVALID:
 			return String.format(MESSAGE_INVALID_FORMAT, userCommand);
 		case EXIT:
@@ -273,6 +275,9 @@ public class TextBuddy {
 		else if (commandTypeString.equalsIgnoreCase("clear")) {
 			return COMMAND_TYPE.CLEAR;
 		} 
+		else if (commandTypeString.equalsIgnoreCase("search")) {
+			return COMMAND_TYPE.SEARCH;
+		}
 		else if (commandTypeString.equalsIgnoreCase("sort")) {
 			return COMMAND_TYPE.SORT;
 		}
@@ -388,6 +393,29 @@ public class TextBuddy {
 	}
 	
 	/**
+	 * This method searches all the lines that contain the keyword given by
+	 * the user.
+	 * @param userCommand
+	 * @return
+	 */
+	private static String search(String userCommand) {
+		String keyword = removeFirstWord(userCommand);
+		ArrayList<String> filteredList = filterKeyword(contentList, keyword);
+		
+		// append all the contents stored in the filtered array list
+		int size = filteredList.size();
+		String displayContent = "";
+		for (int i = 0; i < size - 1; i++) {
+			int index = i + 1;
+			displayContent += index + "." + filteredList.get(i) + "\n";
+		}
+		// the last line does not have "\n"
+		displayContent += size + "." + filteredList.get(size - 1);
+		
+		return displayContent;
+	}
+	
+	/**
 	 * This method exits the program.
 	 */
 	private static void exit() {
@@ -414,6 +442,24 @@ public class TextBuddy {
 			showToUser(e.getMessage());
 		}
 	}
+	
+	/**
+	 * This method filter out all the strings in target that contain a 
+	 * given keyword
+	 * @param target
+	 * @param keyword
+	 * @return
+	 */
+	private static ArrayList<String> filterKeyword(ArrayList<String> target, String keyword) {
+		ArrayList<String> result = new ArrayList<String>();
+		for (String element: target) {
+			if (element.contains(keyword)) {
+				result.add(element);
+			}
+		}
+		return result;
+	}
+	
 	
 	/**
 	 * This method removes the first word from a string

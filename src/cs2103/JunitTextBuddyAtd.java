@@ -2,8 +2,6 @@ package cs2103;
 
 import static org.junit.Assert.*;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.UUID;
@@ -12,17 +10,6 @@ import org.junit.Test;
 
 public class JunitTextBuddyAtd {
 	private static final String TEST_FILENAME = "test.txt";	
-	private PrintStream console;
-	private ByteArrayOutputStream bytes;
-	
-	@Test
-	public void testAdd() {
-		setUp();
-		tearDown();
-		TextBuddy.m_fileName = TEST_FILENAME;
-		TextBuddy.createFile();
-		//testAddNormal();
-	}
 
 	@Test
 	public void testSort() {
@@ -40,7 +27,7 @@ public class JunitTextBuddyAtd {
 	}
 	
 	@Test
-	public void testSearch() {
+	public void testSearch1() {
 		TextBuddy.m_fileName = TEST_FILENAME;
 		TextBuddy.createNewFile();
 		
@@ -51,15 +38,18 @@ public class JunitTextBuddyAtd {
 		assertEquals(TextBuddy.executeCommand("search is"), displayContent);
 	}
 	
-	public void setUp() {
-		bytes = new ByteArrayOutputStream();
-		console = System.out;
-		System.setOut(new PrintStream(bytes));
+	@Test
+	public void testSearch2() {
+		TextBuddy.m_fileName = TEST_FILENAME;
+		TextBuddy.createNewFile();
+		
+		ArrayList<String> commandList = addCommands();
+		ArrayList<String> filteredList = filterKeyword(commandList ,"-");
+		String displayContent = displayList(filteredList);
+		
+		assertEquals(TextBuddy.executeCommand("search -"), displayContent);
 	}
 	
-	public void tearDown() {
-		System.setOut(console);
-	}
 	
 	public ArrayList<String> addCommands() {
 		ArrayList<String> commandList = new ArrayList<String>();
