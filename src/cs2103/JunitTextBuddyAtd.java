@@ -15,18 +15,6 @@ public class JunitTextBuddyAtd {
 	private PrintStream console;
 	private ByteArrayOutputStream bytes;
 	
-	/*
-	public void testRun() {
-		setUp();
-		tearDown();
-		testAddNormal();
-		testDisplayNormal();
-		testBadDelete();
-		testGoodDelete();
-		testClear();
-	}
-	*/
-	
 	@Test
 	public void testAdd() {
 		setUp();
@@ -72,21 +60,6 @@ public class JunitTextBuddyAtd {
 	public void tearDown() {
 		System.setOut(console);
 	}
-	
-	/*
-	public void welcome() {
-		String[] arguments = {TEST_FILENAME};	
-		TextBuddy.main(arguments);
-		assertEquals(String.format(MESSAGE_WELCOME, TEST_FILENAME), bytes.toString());
-	}
-	/*
-	
-	/*
-	public void testIncorrectFileName() {
-		String[] arguments = {"hehe"};		
-		TextBuddy.main(arguments);
-	}
-	*/
 	
 	public ArrayList<String> addCommands() {
 		ArrayList<String> commandList = new ArrayList<String>();
